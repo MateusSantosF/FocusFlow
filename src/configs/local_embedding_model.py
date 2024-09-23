@@ -1,6 +1,4 @@
-from pydantic import PrivateAttr
 import torch
-import numpy as np
 from llama_index.core.embeddings import BaseEmbedding
 from typing import Any, List
 from transformers import BertModel, BertTokenizer

@@ -3,13 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ignore specific secrets.toml files
+/secrets.toml
+/.streamlit/secrets.toml
 
+# Ignore all dotted files and folders recursively
+**/.* 
+
+# Re-include .gitignore files
+!/.gitignore
 config.yaml
-/**/.*  # ignore all dotted files
-/**/.*/ # ignore all dotted folders
-# except `gitignore` :)
 
-!/.gitignore 
 # C extensions
 *.so
 

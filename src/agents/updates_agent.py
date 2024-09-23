@@ -1,11 +1,7 @@
-from llama_index.core.tools import QueryEngineTool, ToolMetadata, BaseTool
-from local_embedding_model import LocalBertEmbedding
-from vector_index_utils import create_vector_index, load_documents
+from llama_index.core.tools import QueryEngineTool, ToolMetadata, BaseTool, RetrieverTool
+from src.utils.vector_index_utils import  get_or_create_vector_index
 
-
-embeddings = LocalBertEmbedding(model_name='neuralmind/bert-base-portuguese-cased')
-documents = load_documents(folder='/updates')
-vector_index = create_vector_index(documents=documents, embed_model=embeddings,index_storage_name="update_index_store.json")
+vector_index = get_or_create_vector_index()
 
 def create_updates_tools() -> list[BaseTool]:
     return [
@@ -15,7 +11,8 @@ def create_updates_tools() -> list[BaseTool]:
                 name="updates-agent",
                 description="Responde sobre atualizações, notas, provas, lembretes e informações da disciplina configuradas pelo professor."
             ),
-        )
+        ),
+       
     ]
 
 updates_tools = create_updates_tools()

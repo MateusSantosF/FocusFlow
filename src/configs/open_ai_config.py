@@ -1,17 +1,15 @@
-import openai
-from appconfig import appConfig
-from agents.discipline_agent import get_discipline_tools
-from agents.updates_agent import get_updates_tools
+from src.agents.discipline_agent import get_discipline_tools
+from src.agents.updates_agent import get_updates_tools
 from llama_index.core import Settings
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
 from llama_index.core.memory import ChatMemoryBuffer
+from src.configs.local_embedding_model import LocalBertEmbedding
 
-
-def get_chat_agent()-> OpenAIAgent:
-    openai.api_key = appConfig.OPENAI_API_KEY
+def build_chat_engine()-> OpenAIAgent:
     Settings.chunk_size = 512
     Settings.chunk_overlap = 64
+    Settings.embed_model = LocalBertEmbedding()
     Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.6)
     memory = ChatMemoryBuffer.from_defaults(token_limit=1500)
     sytem_prompt = """
