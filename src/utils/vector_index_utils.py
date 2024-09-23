@@ -16,7 +16,7 @@ def get_or_create_vector_index():
     else:
         print("Índice de vetores não encontrado. Criando um novo índice...")
         index = create_vector_index()
-    print("Índice de vetores criado e armazenado com sucesso.")
+        print("Índice de vetores criado e armazenado com sucesso.")
 
     return index
 

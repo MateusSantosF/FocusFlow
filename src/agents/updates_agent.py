@@ -1,9 +1,10 @@
 from llama_index.core.tools import QueryEngineTool, ToolMetadata, BaseTool, RetrieverTool
 from src.utils.vector_index_utils import  get_or_create_vector_index
 
-vector_index = get_or_create_vector_index()
 
 def create_updates_tools() -> list[BaseTool]:
+    vector_index = get_or_create_vector_index()
+
     return [
         QueryEngineTool(
             query_engine=vector_index.as_query_engine(),
@@ -15,7 +16,5 @@ def create_updates_tools() -> list[BaseTool]:
        
     ]
 
-updates_tools = create_updates_tools()
-
 def get_updates_tools()-> list[BaseTool]:
-    return updates_tools
+    return create_updates_tools()
