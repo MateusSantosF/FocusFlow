@@ -1,0 +1,3 @@
+UPDATE_AGENT_NAME = "updates"
+DISCIPLINE_AGENT_NAME="disciplina"
+METADATA_AGENT_NAME_KEY = "agent_name"

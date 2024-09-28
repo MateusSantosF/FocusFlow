@@ -1,16 +1,23 @@
-from llama_index.core.tools import QueryEngineTool, ToolMetadata, BaseTool, RetrieverTool
+from llama_index.core.tools import ToolMetadata, BaseTool, RetrieverTool
+from src.utils.Constants import METADATA_AGENT_NAME_KEY, UPDATE_AGENT_NAME
 from src.utils.vector_index_utils import  get_or_create_vector_index
+from llama_index.core.vector_stores import ExactMatchFilter, MetadataFilters
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
 
 
 def create_updates_tools() -> list[BaseTool]:
     vector_index = get_or_create_vector_index()
 
+    filters = MetadataFilters(
+        filters=[ExactMatchFilter(key=METADATA_AGENT_NAME_KEY, value=UPDATE_AGENT_NAME)]
+    )
+
     return [
-        QueryEngineTool(
-            query_engine=vector_index.as_query_engine(),
+        RetrieverTool(
+            retriever=vector_index.as_retriever(similarity_top_k=10, filters=filters,vector_store_query_mode= VectorStoreQueryMode.TEXT_SEARCH),
             metadata=ToolMetadata(
-                name="updates-agent",
-                description="Responde sobre atualizações, notas, provas, lembretes e informações da disciplina configuradas pelo professor."
+                name=UPDATE_AGENT_NAME,
+                description="Responde sobre atualizações, notas, provas, lembretes e informações da disciplina."
             ),
         ),
        
