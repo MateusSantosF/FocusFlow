@@ -10,4 +10,3 @@ huggingface-hub
 torch
 transformers
 langchain
-python-magic-bin
