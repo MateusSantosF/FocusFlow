@@ -15,3 +15,4 @@ langchain-community
 docx2txt
 python-pptx
 Pillow
+supabase
