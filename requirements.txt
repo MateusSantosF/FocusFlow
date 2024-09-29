@@ -13,5 +13,5 @@ llama-index-vector-stores-supabase
 langchain-community
 docx2txt
 python-pptx
-Pillow
+pillow
 supabase
