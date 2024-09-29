@@ -1,6 +1,5 @@
 streamlit_feedback
 streamlit_javascript
-streamlit_authenticator
 streamlit
 duckdb
 llama-index
