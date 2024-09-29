@@ -28,7 +28,7 @@ if st.session_state.messages[-1]["role"] != "assistant":
         with st.spinner("Pensando..."):
             st.session_state.firts_run = False
             response = st.session_state.chat_engine.chat(message=prompt)
-            st.write(response.response, unsafe_allow_html=True, anchor=False)
+            st.write(response.response, unsafe_allow_html=True)
             st.session_state.run_id = 1
             message = {"role": "assistant", "content": response.response}
             st.session_state.messages.append(message) # Add response to message history

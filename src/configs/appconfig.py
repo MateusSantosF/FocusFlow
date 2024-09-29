@@ -3,8 +3,9 @@ import streamlit as st
 
 class AppConfig(BaseSettings):
     OPENAI_API_KEY: str = st.secrets["openai_key"]
-    VECTOR_STORAGE_DIR: str = "./vector_storage/"
-    TRAINING_DATA_DIR: str = "./training_data/"
-    DATABASE_FILE_NAME: str = "vector_store.duckdb"
+    DATABASE_URL: str = st.secrets["database_url"]
+    SUPABASE_URL: str = st.secrets["supabase_url"]
+    SUPABASE_KEY: str = st.secrets["supabase_key"]
+    SUPABASE_VECTORS_COLLECTION: str = "embeddings"
 
 appConfig = AppConfig() # type: ignore

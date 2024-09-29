@@ -13,7 +13,7 @@ class LocalBertEmbedding(BaseEmbedding):
         super().__init__(**kwargs)
         model_name = 'neuralmind/bert-large-portuguese-cased'
         self._tokenizer = BertTokenizer.from_pretrained(model_name)
-        self._model = BertModel.from_pretrained(model_name)
+        self._model = BertModel.from_pretrained(model_name) # type: ignore
 
     @classmethod
     def class_name(cls) -> str:
