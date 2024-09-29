@@ -1,50 +1,44 @@
 # FocusFlow
 
-**FocusFlow** é um chatbot desenvolvido para atender alunos da disciplina de Multimeios Didáticos do IFSP São João da Boa Vista. O chatbot utiliza técnicas avançadas de Cálculo Numérico e Inteligência Artificial para fornecer respostas automáticas sobre o conteúdo da disciplina, além de permitir acesso a informações sobre datas importantes como provas, tarefas e projetos.
+**FocusFlow** é um chatbot desenvolvido para os alunos da disciplina de Multimeios Didáticos do IFSP São João da Boa Vista. Utilizando técnicas avançadas de Inteligência Artificial e modelos da OpenAI, o chatbot fornece respostas automáticas sobre o conteúdo da disciplina e informações sobre datas importantes, como provas, tarefas e projetos.
 
 ## 📚 **Objetivo do Projeto**
 
-O objetivo do FocusFlow é auxiliar os alunos na interação com o conteúdo da disciplina de forma intuitiva e eficiente. O chatbot oferece suporte para consultas relacionadas a tópicos de aula, avisos, lembretes sobre datas importantes e outras informações úteis que contribuem para o sucesso acadêmico dos alunos.
+O FocusFlow tem como objetivo auxiliar os alunos na interação com o conteúdo da disciplina de forma intuitiva e eficiente. O chatbot oferece suporte para consultas sobre tópicos de aula, avisos, lembretes e outras informações úteis para o sucesso acadêmico.
 
 ## 🚀 **Funcionalidades Principais**
 
-- **Respostas automatizadas** sobre conteúdos de Cálculo e Multimeios Didáticos.
+- **Respostas automáticas** sobre conteúdos de Cálculo e Multimeios Didáticos.
 - **Notificações e lembretes** sobre datas de provas, entregas de tarefas e projetos.
 - **Consulta sobre tópicos específicos da disciplina**, incluindo exercícios resolvidos e conceitos teóricos.
-- **Integração com modelos locais de IA** para processamento e geração de respostas sem depender de APIs externas pagas.
+- **Integração com modelos da OpenAI** (embedding-small-3 e gpt4o-mini) para processamento e geração de respostas.
 
 ## 🛠️ **Tecnologias Utilizadas**
 
 - **Python 3.10+**
-- **FastAPI**: Framework para criar APIs rápidas e escaláveis.
-- **LlamaIndex**: Utilizado para a construção de índices e consulta de documentos.
-- **Transformers**: Biblioteca para uso de modelos de linguagem pré-treinados.
+- **FastAPI**: Framework para criação de APIs rápidas e escaláveis.
+- **OpenAI GPT Models**: Utilizados para geração de respostas e embeddings.
+- **Supabase**: Armazenamento de dados.
+- **Pydantic Settings**: Para configuração de variáveis de ambiente.
+- **Streamlit**: Interface para o painel administrativo.
 - **PyTorch**: Framework para cálculos numéricos e aprendizado de máquina.
-- **Unstructured**: Utilizado para leitura e processamento de documentos de texto e PDFs.
-- **libmagic**: Biblioteca para detecção de tipos de arquivo.
-- **MongoDB**: Armazenamento de documentos e logs (opcional).
 
 ## 📦 **Estrutura do Projeto**
 
 ```plaintext
 FocusFlow/
 │
-├── agents/
-│   ├── discipline_agent.py      # Agente para responder sobre conteúdos da disciplina
-│   ├── updates_agent.py         # Agente para fornecer informações sobre datas importantes
-│   └── __init__.py
+├── src/
+│   ├── agents/                 # Agentes que lidam com diferentes funcionalidades do chatbot
+│   ├── services/               # Serviços utilizados pelo chatbot (ex: integração com IA)
+│   ├── configs/                # Configurações do projeto
+│   ├── pages/                  # Páginas da interface do usuário
+│   ├── pages/fragments/        # Fragmentos reutilizáveis de UI
+│   └── utils/                  # Utilitários gerais do projeto
 │
-├── context/                     # Diretório contendo arquivos de referência (PDFs, textos)
+├── requirements.txt            # Lista de dependências do projeto
 │
-├── local_embedding_model.py     # Implementação do modelo de embeddings local (BERT)
-│
-├── open_ai_config.py            # Configuração dos embeddings e criação dos vetores
-│
-├── main.py                      # Arquivo principal contendo o servidor FastAPI
-│
-├── requirements.txt             # Lista de dependências do projeto
-│
-└── README.md                    # Documentação do projeto
+└── README.md                   # Documentação do projeto
 ```
 
 ## 📥 **Instalação e Configuração**
@@ -77,23 +71,15 @@ FocusFlow/
    pip install -r requirements.txt
    ```
 
-4. **Configure o diretório de contexto:**
+4. **Configure as variáveis de ambiente:**
 
-   - Adicione arquivos PDF e de texto relevantes para a disciplina na pasta `context/`. Esses arquivos serão processados pelo chatbot.
-
-5. **Configure variáveis de ambiente (opcional):**
-
-   - Configure variáveis como o `TRAINING_DATA_DIR` e `VECTOR_STORAGE_DIR` no arquivo `appconfig.py` para especificar o diretório de contexto.
-
-6. **Instale a `libmagic`:**
-
-   - **Para Windows:** Instale o `python-magic-bin`:
+   - Defina suas chaves de API no arquivo `.streamlit/secrets.toml` ou diretamente no código:
      ```bash
-     pip install python-magic-bin
-     ```
-   - **Para Linux:** Instale a `libmagic`:
-     ```bash
-     sudo apt-get install libmagic1 libmagic-dev
+      # [general]
+      openai_key = "sk-" 
+      database_url = "postgresql://postgres.<PROJECT_ID>:<YOUR_PASSWORD>@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
+      supabase_url = "https://<PROJECT_ID>.supabase.co"
+      supabase_key = ""
      ```
 
 ## 🏃 **Executando o Servidor**
@@ -101,22 +87,5 @@ FocusFlow/
 Para iniciar o servidor FastAPI e testar o chatbot:
 
 ```bash
-uvicorn main:app --reload
+streamlit run ./main.py
 ```
-
-- O servidor será iniciado na URL `http://127.0.0.1:8000`.
-- Você pode testar o chatbot enviando requisições para o endpoint `/chat`.
-
-## 📝 **Uso do Chatbot**
-
-1. **Acesse o endpoint `/chat`**:
-
-   - Use ferramentas como Postman, cURL, ou HTTPie para enviar requisições ao chatbot.
-
-2. **Exemplo de Requisição:**
-
-   ```bash
-   curl -X POST "http://127.0.0.1:8000/chat" \
-        -H "Content-Type: application/json" \
-        -d '{"message": "Qual a ementa do curso?"}'
-   ```

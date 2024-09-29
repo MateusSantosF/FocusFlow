@@ -8,7 +8,7 @@ CHAT_PAGE = st.Page("src/pages/chat.py", title="💬 Chat", default=True)
 role = st.radio("Como deseja entrar?", ("Aluno", "Professor"))
 current_access_code = "SJBV2024"
 
-st.cache_data(ttl=60)
+st.cache_resource(ttl=60)
 def get_current_config():
     result = SUPABASE_CLIENT.schema("public").table("access_configs").select("*").execute()
     config = result.data[0]
