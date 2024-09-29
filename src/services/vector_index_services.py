@@ -1,18 +1,15 @@
-from pathlib import Path
-from typing import List
 from llama_index.core import VectorStoreIndex, StorageContext
 from src.configs.appconfig import appConfig
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from llama_index.core.node_parser import LangchainNodeParser
 from src.services.supabase_services import SUPABASE_CLIENT
 from src.utils.Constants import METADATA_AGENT_NAME_KEY
-from llama_index.core import StorageContext
-from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.supabase import SupabaseVectorStore
-from llama_index.core import Document
-from llama_index.readers.file import PDFReader,DocxReader, FlatReader
+from llama_index.core import SimpleDirectoryReader
+
 import tempfile
 import os
+import shutil
 
 def get_vector_index() -> VectorStoreIndex:
     vector_store = SupabaseVectorStore(
@@ -20,98 +17,99 @@ def get_vector_index() -> VectorStoreIndex:
         dimension=1536, 
         collection_name=appConfig.SUPABASE_VECTORS_COLLECTION,
     )
-    index = VectorStoreIndex.from_vector_store(vector_store = vector_store)
+    index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
     return index
 
 
 def recreate_vector_index() -> VectorStoreIndex:
-    print("re-creating vector index...")
-    SUPABASE_CLIENT.postgrest.from_table('embeddings').delete()
-    # Lista arquivos dos buckets no Supabase
-    discipline_files = SUPABASE_CLIENT.storage.from_('disciplina').list()
-    updates_files = SUPABASE_CLIENT.storage.from_('updates').list()
-    
-    # Lista para armazenar os documentos convertidos
-    all_files = discipline_files + updates_files
-    documents: List[Document] = []
+    print("Recriando o índice vetorial...")
 
-    # List to keep track of temporary files for cleanup
-    temp_files = []
+    # Cria um diretório temporário para armazenar os arquivos
+    temp_dir = tempfile.mkdtemp(prefix="focus_flow_temp_files_")
+    print(f"Diretório temporário criado em: {temp_dir}")
 
-    # Função auxiliar para converter o arquivo em documento
-    def file_to_document(file_name, file_content, mimetype)-> List[Document]:
-        print(f"Processing file: {file_name} - {mimetype}")
-        # Create a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, prefix=file_name + "-") as tmp_file:
-            tmp_file.write(file_content)
-            tmp_file.flush()
-            file_path = tmp_file.name
-            temp_files.append(file_path)  # Keep track of temp files to delete later
+    try:
+        # Lista os arquivos nos buckets 'disciplina' e 'updates'
+        discipline_files = SUPABASE_CLIENT.storage.from_('disciplina').list()
+        updates_files = SUPABASE_CLIENT.storage.from_('updates').list()
+        
+        all_files = discipline_files + updates_files
 
-        # Choose the appropriate loader based on the mimetype
-        if mimetype == "pdf":
-            loader = PDFReader()
-        elif mimetype == "docx":
-            loader = DocxReader()
-        elif mimetype == "txt":
-            loader = FlatReader()
-        else:
-            print(f"Unsupported file type: {file_name} {mimetype}")
-            return []
-  
+        # Função para baixar arquivos do Supabase para o diretório temporário
+        def download_file_to_temp(file_info, bucket_name):
+            file_name = file_info['name']
+            print(f"Baixando arquivo: {file_name} do bucket: {bucket_name}")
+            file_content = SUPABASE_CLIENT.storage.from_(bucket_name).download(file_name)
+            file_path = os.path.join(temp_dir, file_name)
+            
+            # Garante que o diretório existe
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            with open(file_path, 'wb') as f:
+                f.write(file_content)
+            # Opcional: Definir metadados como parte do nome ou através de arquivos auxiliares
+            return file_path
 
-        return loader.load_data(file=Path(file_path))
+        # Baixa todos os arquivos para o diretório temporário
+        for file_info in all_files:
+            bucket_name = 'disciplina' if file_info in discipline_files else 'updates'
+            download_file_to_temp(file_info, bucket_name)
 
-    # Faz o download de cada arquivo e converte para documento
-    for file_info in all_files:
-        print(file_info)
-        file_name = file_info['name']
-        mimetype = file_name.split('.')[-1]
-        # Download do arquivo do Supabase
-        bucket_name = 'disciplina' if file_info in discipline_files else 'updates'
-        file_content = SUPABASE_CLIENT.storage.from_(bucket_name).download(file_name)  # Ajustar conforme o bucket correto
-        doc = file_to_document(file_name, file_content, mimetype)[0]
-        doc.metadata[METADATA_AGENT_NAME_KEY] = bucket_name
-        doc.metadata["file_path"] = None
-        documents.append(doc)  # Adiciona o documento à lista
+        print("Todos os arquivos foram baixados para o diretório temporário.")
 
-    # Combina documentos locais e os carregados do Supabase
+        reader = SimpleDirectoryReader(
+            input_dir=temp_dir,
+            recursive=False,
+            filename_as_id=True,
+        )
+        documents = reader.load_data(show_progress=True)
 
-    # Printando o nome dos documentos encontrados
-    print("Documentos encontrados:")
-    for doc in documents:
-        doc.metadata
-        print(doc.metadata.get("file_name", "Unknown File"))
+        # Opcional: Adicionar metadados adicionais aos documentos
+        for doc in documents:
+            # Aqui, você pode extrair o bucket a partir do caminho do arquivo ou outra lógica
+            # Exemplo simplificado:
+            file_name = os.path.basename(doc.metadata.get("file_path", ""))
+            if file_name in [f['name'] for f in discipline_files]:
+                bucket = 'disciplina'
+            else:
+                bucket = 'updates'
+            doc.metadata[METADATA_AGENT_NAME_KEY] = bucket
+            doc.metadata["file_path"] = None  # Remova ou ajuste conforme necessário
 
-    # Parse e processamento dos documentos como na lógica anterior
-    parser = LangchainNodeParser(RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
-        separators=["\n\n", "\n", ".", "!", "?", ",", " "]
-    ))
+        print("Documentos carregados pelo SimpleDirectoryReader.")
 
-    token_nodes = parser.get_nodes_from_documents(documents, show_progress=True)
+        # Configura o parser e divide os textos
+        parser = LangchainNodeParser(RecursiveCharacterTextSplitter(
+            chunk_size=512,
+            chunk_overlap=64,
+            separators=["\n\n", "\n"]
+        ))
 
-    vector_store = SupabaseVectorStore(
-        postgres_connection_string=appConfig.DATABASE_URL,
-        dimension=1536,
-        collection_name="embeddings",
-    )
+        token_nodes = parser.get_nodes_from_documents(documents, show_progress=True)
 
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        # Configura o armazenamento vetorial
+        vector_store = SupabaseVectorStore(
+            postgres_connection_string=appConfig.DATABASE_URL,
+            dimension=1536,
+            collection_name="embeddings",
+        )
 
-    index = VectorStoreIndex(
-        nodes=token_nodes,
-        storage_context=storage_context,
-        show_progress=True
-    )
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-    # Clean up temporary files
-    for file_path in temp_files:
+        # Cria o índice vetorial
+        index = VectorStoreIndex(
+            nodes=token_nodes,
+            storage_context=storage_context,
+            show_progress=True
+        )
+
+        print("Índice vetorial criado e armazenado.")
+        return index
+
+    finally:
+        # Garante que o diretório temporário seja removido
         try:
-            os.remove(file_path)
-        except OSError as e:
-            print(f"Error deleting temporary file {file_path}: {e}")
-
-    print("Vector index created and stored.")
-    return index
+            shutil.rmtree(temp_dir)
+            print(f"Diretório temporário {temp_dir} removido com sucesso.")
+        except Exception as e:
+            print(f"Erro ao remover o diretório temporário {temp_dir}: {e}")

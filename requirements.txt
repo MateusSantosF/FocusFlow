@@ -9,3 +9,4 @@ langchain
 llama-index-vector-stores-supabase
 docx2txt
 supabase
+pypdf
