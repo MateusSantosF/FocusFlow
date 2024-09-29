@@ -10,14 +10,14 @@ from llama_index.core import StorageContext
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.core import Document
-from llama_index.readers.file import PDFReader,DocxReader, PptxReader, FlatReader
+from llama_index.readers.file import PDFReader,DocxReader, FlatReader
 import tempfile
 import os
 
 def get_vector_index() -> VectorStoreIndex:
     vector_store = SupabaseVectorStore(
         postgres_connection_string=appConfig.DATABASE_URL,
-        dimension=1024, 
+        dimension=1536, 
         collection_name=appConfig.SUPABASE_VECTORS_COLLECTION,
     )
     index = VectorStoreIndex.from_vector_store(vector_store = vector_store)
@@ -55,8 +55,6 @@ def recreate_vector_index() -> VectorStoreIndex:
             loader = DocxReader()
         elif mimetype == "txt":
             loader = FlatReader()
-        elif mimetype == "pptx":
-            loader = PptxReader()
         else:
             print(f"Unsupported file type: {file_name} {mimetype}")
             return []
@@ -96,7 +94,7 @@ def recreate_vector_index() -> VectorStoreIndex:
 
     vector_store = SupabaseVectorStore(
         postgres_connection_string=appConfig.DATABASE_URL,
-        dimension=1024,
+        dimension=1536,
         collection_name="embeddings",
     )
 

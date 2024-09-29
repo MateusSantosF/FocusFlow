@@ -1,17 +1,11 @@
 streamlit_feedback
 streamlit_javascript
 streamlit
-duckdb
 llama-index
-llama-index-vector-stores-duckdb
 pydantic-settings
-huggingface-hub
 torch
 transformers
 langchain
 llama-index-vector-stores-supabase
-langchain-community
 docx2txt
-python-pptx
-pillow
 supabase

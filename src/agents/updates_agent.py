@@ -14,7 +14,7 @@ def create_updates_tools() -> list[BaseTool]:
 
     return [
         RetrieverTool(
-            retriever=vector_index.as_retriever(similarity_top_k=10, filters=filters,vector_store_query_mode= VectorStoreQueryMode.TEXT_SEARCH),
+            retriever=vector_index.as_retriever(similarity_top_k=3, filters=filters,vector_store_query_mode= VectorStoreQueryMode.TEXT_SEARCH),
             metadata=ToolMetadata(
                 name=UPDATE_AGENT_NAME,
                 description="Responde sobre atualizações, notas, provas, lembretes e informações da disciplina."

@@ -67,7 +67,7 @@ st.subheader("Adicionar novos arquivos")
 uploaded_files = st.file_uploader(
     label="Selecione os arquivos para upload",
     accept_multiple_files=True,
-    type=['pdf', 'docx', 'txt', 'pptx']
+    type=['pdf', 'docx', 'txt']
 )
 
 category = st.selectbox(

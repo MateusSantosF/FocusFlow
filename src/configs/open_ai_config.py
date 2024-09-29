@@ -4,8 +4,8 @@ from llama_index.core import Settings
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
 from llama_index.core.memory import ChatMemoryBuffer
-from src.configs.local_embedding_model import LocalBertEmbedding
 from src.configs.appconfig import appConfig
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType, OpenAIEmbeddingMode
 
 
 def build_chat_engine()->OpenAIAgent:
@@ -13,8 +13,7 @@ def build_chat_engine()->OpenAIAgent:
     Settings.chunk_overlap = 128
     Settings.num_output = 700 # number of tokens reserved for text generation.
     Settings.context_window = 4096 # maximum input size to the LLM
-    embedding_model = LocalBertEmbedding()
-    Settings.embed_model = embedding_model
+    Settings.embed_model = OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL, api_key=appConfig.OPENAI_API_KEY, max_retries= 4)
     Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0.6, api_key=appConfig.OPENAI_API_KEY)
     memory = ChatMemoryBuffer.from_defaults(token_limit=1500)
     sytem_prompt = """

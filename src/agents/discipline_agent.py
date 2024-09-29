@@ -13,7 +13,7 @@ def create_discipline_tools() -> list[BaseTool]:
     )
     return [
         RetrieverTool(
-            retriever=vector_index.as_retriever(similarity_top_k=10, filters=filters,vector_store_query_mode= VectorStoreQueryMode.TEXT_SEARCH),
+            retriever=vector_index.as_retriever(similarity_top_k=5, filters=filters,vector_store_query_mode= VectorStoreQueryMode.TEXT_SEARCH),
             metadata=ToolMetadata(
                 name=DISCIPLINE_AGENT_NAME,
                 description="Responde perguntas sobre a disciplina de Multimeios Didáticos"
