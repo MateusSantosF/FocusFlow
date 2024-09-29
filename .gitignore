@@ -7,8 +7,7 @@ __pycache__/
 /secrets.toml
 /.streamlit/secrets.toml
 
-# Ignore all dotted files and folders recursively
-**/.* 
+
 
 # Re-include .gitignore files
 !/.gitignore
