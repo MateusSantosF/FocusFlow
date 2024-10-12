@@ -1,6 +1,12 @@
 import streamlit as st
 from streamlit_feedback import streamlit_feedback
 
+from src.services.logging_service import LoggingService
+from src.services.supabase_services import SUPABASE_CLIENT
+
+
+logger = LoggingService(SUPABASE_CLIENT)  # Instancia o serviço de logging
+
 # Definir o título da aplicação
 st.title("Tutor Virtual", anchor=False)
 
@@ -13,10 +19,10 @@ if "messages" not in st.session_state.keys():
 if prompt := st.chat_input(max_chars=300, placeholder="Digite sua pergunta"): 
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-def feedback_cb(test):
-    print(st.session_state.get("run_id") != None)
-    print("==================")
-    print(test)
+def feedback_cb(feedback):
+    if st.session_state.get("run_id") != None:
+        logger.log_feedback(st.session_state.run_id, feedback)
+ 
 
 for message in st.session_state.messages: # Display the prior chat messages
     with st.chat_message(message["role"]):
@@ -29,7 +35,10 @@ if st.session_state.messages[-1]["role"] != "assistant":
             st.session_state.firts_run = False
             response = st.session_state.chat_engine.chat(message=prompt)
             st.write(response.response, unsafe_allow_html=True)
-            st.session_state.run_id = 1
+
+            # Registrar a interação no log
+            run_id = logger.log_interaction(prompt, response.response)
+            st.session_state.run_id = run_id
             message = {"role": "assistant", "content": response.response}
             st.session_state.messages.append(message) # Add response to message history
 

@@ -31,7 +31,6 @@ def reset_session():
     st.session_state.name = None
     st.session_state.username = None
     st.session_state.sidebar = 'collapsed'
-    print("Sessão reiniciada.")
     st.rerun()
 
 if st.session_state.authenticated_role is None:
